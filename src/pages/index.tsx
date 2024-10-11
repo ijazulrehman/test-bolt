@@ -1,21 +1,46 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [text, setText] = useState("");
+  const router = useRouter();
+  const [data, setData] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const request = async () => {
-      const result = await fetch("/api/pokemon");
-      // This is just an example to obtain data from the endpoint. Hint :) avoid no typesafety we hate that
+      try {
+        const result = await fetch(`/api/pokemon?id=2`);
       const resultJson = await result.json();
       console.log({ resultJson });
-      setText(resultJson.message);
+      setData(resultJson);
+      } catch(error){
+        console.error("Failed to fetch Pokemon data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     void request();
   }, []);
 
+  const redirectToSearch = () => {
+    router.push("/pokedex");
+  };
+
+  const redirectToDetail = () => {
+    router.push("/pokedex/view/2");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-t-4 border-gray-200 border-t-blue-500"></div>
+      </div>
+    );
+  }
+  
   return (
     <>
       <Head>
@@ -23,22 +48,62 @@ export default function Home() {
         <meta name="description" content="Condorsoft technical test" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#04040c] to-[#15162c]">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            Condorsoft Technical Test <p>{text}</p>
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-              href="https://condorsoft.dev/"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">About our family →</h3>
-              <div className="text-lg">
-                We create the best products and look for the best.
+      <main className="flex min-h-screen items-center justify-center">
+        <div
+          className="relative h-[500px] w-full max-w-3xl bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/home.png')" }}
+        >
+          <div
+            className="absolute max-w-56"
+            style={{ top: "152px", left: "67px" }}
+          >
+            <div className="flex justify-between">
+              <span>{data.name}</span>
+              <span>{data.n123}</span>
+            </div>
+
+            <p className="text-left text-sm">Electric</p>
+
+            <p className="text-left text-sm">
+              {data?.description
+                ? data.description.length > 90
+                  ? `${data.description.substring(0, 90)}...`
+                  : data.description
+                : "No description available"}
+            </p>
+
+            {/* Height and Weight */}
+            <div className="flex justify-between">
+              <div>
+                <span className="block">Height</span>
+                <span className="block">{data.height}</span>
               </div>
-            </Link>
+              <div>
+                <span className="block">Weight</span>
+                <span className="block">{data.weight}</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="absolute bottom-20 left-10"
+            style={{ left: "97px", bottom: "37px" }}
+          >
+            <button
+              className="rounded-lg px-6 py-2 text-black"
+              onClick={redirectToSearch}
+            >
+              Search
+            </button>
+          </div>
+
+          <div className="absolute" style={{ right: "234px", bottom: "34px" }}>
+            <button
+              className="rounded-lg px-6 py-2 text-black"
+              onClick={redirectToDetail}
+            >
+              View More
+            </button>
           </div>
         </div>
       </main>
